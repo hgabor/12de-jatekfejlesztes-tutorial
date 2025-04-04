@@ -30,7 +30,6 @@ export class Game extends Scene
     {
         // Set up input
         this.cursors = this.input.keyboard?.createCursorKeys()!;
-        this.gamepad = this.input.gamepad?.getPad(0);
 
         // Create game objects
         this.add.image(0, 0, 'sky').setOrigin(0, 0);
@@ -130,8 +129,16 @@ export class Game extends Scene
         this.physics.add.collider(this.player, bombs, hitBomb);
     }
 
+    
+    initGamepad() {
+        if (this.gamepad) return;
+        this.gamepad = this.input.gamepad?.getPad(0);
+    }
+
     update(): void {
         if (this.gameOver) return;
+
+        this.initGamepad();
 
         let left = this.cursors.left.isDown || this.gamepad?.left;
         let right = this.cursors.right.isDown || this.gamepad?.right;
