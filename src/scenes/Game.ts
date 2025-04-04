@@ -81,14 +81,16 @@ export class Game extends Scene
             fontSize: '32px', color: '#000'
         })
 
-        let collectStar = (player, star) => {
+        let collectStar = (player: any, starParam: any) => {
+            let star = starParam as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
             star.disableBody(true, true);
             score++;
 
             scoreText.setText(`score: ${score}00`);
 
             if (stars.countActive(true) === 0) {
-                stars.children.iterate((star1: any) => {
+                stars.children.iterate((starParam: any) => {
+                    let star1 = starParam as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
                     star1.enableBody(true, star1.x, 0, true, true);
                     return true;
                 })
@@ -104,7 +106,8 @@ export class Game extends Scene
             }
         }
 
-        let hitBomb = (play, bomb) => {
+        let hitBomb = (_player: any, _bomb: any) => {
+
             this.physics.pause();
             this.player.setTint(0xff0000);
             this.player.anims.play('turn');
