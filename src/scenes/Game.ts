@@ -4,7 +4,6 @@ export class Game extends Scene
 {
     cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    stars: Phaser.Physics.Arcade.Group;
     gamepad: Phaser.Input.Gamepad.Gamepad | undefined;
 
     gameOver = false;
@@ -29,6 +28,11 @@ export class Game extends Scene
 
     create ()
     {
+        // Set up input
+        this.cursors = this.input.keyboard?.createCursorKeys()!;
+        this.gamepad = this.input.gamepad?.getPad(0);
+
+        // Create game objects
         this.add.image(0, 0, 'sky').setOrigin(0, 0);
 
         let platforms = this.physics.add.staticGroup();
@@ -39,11 +43,8 @@ export class Game extends Scene
         platforms.create(750, 220, 'platform');
 
         this.player = this.physics.add.sprite(100, 450, 'dude');
-
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
-
-        this.physics.add.collider(this.player, platforms);
 
         this.anims.create({
             key: 'left',
@@ -65,35 +66,30 @@ export class Game extends Scene
             frameRate: 20
         })
 
-        this.cursors = this.input.keyboard?.createCursorKeys()!;
-        this.gamepad = this.input.gamepad?.getPad(0);
-
-        let score = 0;
-        let scoreText = this.add.text(16, 16, 'score: 0', {
-            fontSize: '32px', color: '#000'
-        })
-
-        this.stars = this.physics.add.group({
+        let stars = this.physics.add.group({
             key: 'star',
             repeat: 11,
             setXY: { x: 12, y: 0, stepX: 70 }
         })
 
-        this.stars.children.iterate((star: any) => {
-            star.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-            return true;
+        let bombs = this.physics.add.group();
+
+        // Interaction
+
+        let score = 0;
+
+        let scoreText = this.add.text(16, 16, 'score: 0', {
+            fontSize: '32px', color: '#000'
         })
 
-        this.physics.add.collider(this.stars, platforms);
-        
         let collectStar = (player, star) => {
             star.disableBody(true, true);
             score++;
 
             scoreText.setText(`score: ${score}00`);
 
-            if (this.stars.countActive(true) === 0) {
-                this.stars.children.iterate((star1: any) => {
+            if (stars.countActive(true) === 0) {
+                stars.children.iterate((star1: any) => {
                     star1.enableBody(true, star1.x, 0, true, true);
                     return true;
                 })
@@ -117,10 +113,19 @@ export class Game extends Scene
             this.gameOver = true;
         }
 
-        this.physics.add.overlap(this.player, this.stars, collectStar);
+        // Physics
 
+        this.physics.add.collider(this.player, platforms);
 
-        let bombs = this.physics.add.group();
+        stars.children.iterate((star: any) => {
+            star.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+            return true;
+        })
+
+        this.physics.add.collider(stars, platforms);
+        
+        this.physics.add.overlap(this.player, stars, collectStar);
+
         this.physics.add.collider(bombs, platforms);
         this.physics.add.collider(this.player, bombs, hitBomb);
     }
